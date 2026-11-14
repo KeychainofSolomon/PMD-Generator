@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deliverance Character Generator</title>
+<style>
+:root{
+  --bg:#f3ecdc; --panel:#fbf7ee; --ink:#2b2a24; --muted:#6d6656; --line:#d9cfb8;
+  --accent:#3f6b4f; --accent2:#7a5a2f; --warn:#9b3b2a; --chip:#ece3cf;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Georgia,"Iowan Old Style","Palatino Linotype",serif}
+header{padding:18px 24px 10px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between}
+h1{margin:0;font-size:24px;letter-spacing:.3px}
+h1 small{display:block;font-size:13px;color:var(--muted);font-weight:normal;letter-spacing:0}
+h2{font-size:16px;margin:0 0 10px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px}
+main{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,1fr) minmax(300px,.9fr);gap:16px;padding:16px 24px 40px}
+@media (max-width:1100px){main{grid-template-columns:1fr 1fr}}
+@media (max-width:720px){main{grid-template-columns:1fr}}
+section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:16px}
+label{display:block;font-size:13px;color:var(--muted);margin:8px 0 3px}
+input,select,button,textarea{font:inherit;color:inherit}
+input[type=text],input[type=number],select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:#fff}
+button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:5px;padding:6px 12px;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.4;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--accent);border-radius:6px;overflow:hidden}
+.seg button{white-space:nowrap;border:0;border-radius:0;background:transparent;color:var(--accent)}
+.seg button.on{background:var(--accent);color:#fff}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.note{font-size:13px;color:var(--muted);margin:6px 0 0}
+.warn{color:var(--warn);font-size:13px;margin:6px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{background:var(--chip);border-radius:10px;padding:1px 8px;font-size:12px}
+.list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:5px;background:#fff}
+.list div{padding:4px 8px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #f0ead9}
+.list div:hover{background:#f5efe0}
+.list div.sel{background:#e3ecdf}
+.list div span:last-child{color:var(--muted);font-size:12px;white-space:nowrap}
+table.stats{width:100%;border-collapse:collapse}
+table.stats td{padding:3px 2px;border-bottom:1px solid #efe7d3}
+table.stats td.v{text-align:right;font-weight:bold;width:52px}
+table.stats td.b{width:76px;text-align:right;white-space:nowrap}
+table.stats button{padding:0 8px;line-height:20px}
+.pts{font-size:13px;margin:4px 0 6px}
+.pts b{color:var(--accent)}
+.move{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:6px 0;background:#fff}
+.move.on{border-color:var(--accent);background:#eef4ea}
+.move .h{display:flex;justify-content:space-between;gap:6px;cursor:pointer}
+.move .d{font-size:13px;color:var(--muted)}
+pre{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px;font:13px/1.45 ui-monospace,Consolas,monospace;max-height:540px;overflow:auto}
+details summary{cursor:pointer;color:var(--accent);margin-top:8px}
+.roster div{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #efe7d3}
+.roster button{padding:1px 8px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Deliverance Character Generator<small>Pokémon Mystery Dungeon: Deliverance · New Palafitte</small></h1>
+  <div class="row" style="flex:0 0 auto">
+    <div class="seg" id="mode"><button data-m="pc" class="on">Player character</button><button data-m="npc">NPC</button></div>
+    <button id="rand">Randomize</button>
+  </div>
+</header>
+<main>
+<div>
+  <section>
+    <h2>Identity</h2>
+    <label>Name</label><input type="text" id="name" placeholder="Name">
+    <div class="row">
+      <div><label>Level</label><input type="number" id="level" min="1" max="50" value="1"></div>
+      <div><label>Nature</label><select id="nature"></select></div>
+    </div>
+    <div id="neutralWrap" style="display:none"><label>Neutral nature: stat raised on evolving</label><select id="neutralStat"></select></div>
+    <label>Trait</label><select id="trait"></select>
+    <p class="note" id="traitNote"></p>
+    <label>Background</label><select id="bg"></select>
+    <p class="note" id="bgNote"></p>
+  </section>
+  <section>
+    <h2>Species</h2>
+    <input type="text" id="search" placeholder="Search by name, type or number">
+    <label style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--ink)"><input type="checkbox" id="showAll"> Show species not allowed right now</label>
+    <div class="list" id="species" style="margin-top:6px"></div>
+    <p class="note" id="speciesNote"></p>
+    <label>Ability</label><select id="ability"></select>
+    <p class="note" id="abilityNote"></p>
+  </section>
+</div>
+<div>
+  <section>
+    <h2>General stats</h2>
+    <div class="pts" id="gPts"></div>
+    <table class="stats" id="gTable"></table>
+    <p class="note">Consumption goes down when you invest in it, and never below 1. Every 2 points in Belly raise Consumption by 1. Every 2 points in Movement add 5 m.</p>
+  </section>
+  <section>
+    <h2>Battle stats</h2>
+    <div class="pts" id="bPts"></div>
+    <table class="stats" id="bTable"></table>
+    <div class="row" style="margin-top:8px"><button class="ghost" id="autoB">Auto-spread points</button><button class="ghost" id="resetPts">Reset points</button></div>
+  </section>
+  <section>
+    <h2>Moves <span style="text-transform:none;letter-spacing:0;color:var(--muted);font-size:13px" id="moveCount"></span></h2>
+    <div id="moves"></div>
+    <details id="poolWrap"><summary>Can learn later</summary>
+      <input type="text" id="poolSearch" placeholder="Filter moves" style="margin-top:6px">
+      <div id="pool"></div>
+    </details>
+  </section>
+</div>
+<div>
+  <section>
+    <h2>Sheet</h2>
+    <div id="problems"></div>
+    <pre id="sheet"></pre>
+    <div class="row"><button id="copy">Copy</button><button class="ghost" id="dl">Download .txt</button><button class="ghost" id="save">Save to roster</button></div>
+    <p class="note" id="copyNote"></p>
+  </section>
+  <section>
+    <h2>Roster</h2>
+    <div class="roster" id="roster"><p class="note">Saved characters appear here, in this browser only.</p></div>
+  </section>
+</div>
+</main>
+<script src="data.js"></script>
+<script>
+const D=window.PMD_DATA, PK=D.pk, MV=D.mv, AB=D.ab;
+const bySpecies={}; PK.forEach(p=>{if(!p.r) bySpecies[p.s]=p});
+const COMMON=['Normal','Fire','Water','Grass','Electric','Fighting','Ground','Rock','Dark'];
+const RARE=['Psychic','Ghost','Fairy','Steel','Dragon','Bug','Poison','Flying','Ice'];
+const NATURES={Hardy:0,Lonely:'Attack',Brave:'Attack',Adamant:'Attack',Naughty:'Attack',Bold:'Defense',Docile:0,Relaxed:'Defense',Impish:'Defense',Lax:'Defense',Timid:'Speed',Hasty:'Speed',Serious:0,Jolly:'Speed',Naive:'Speed',Modest:'Sp. Attack',Mild:'Sp. Attack',Quiet:'Sp. Attack',Bashful:0,Rash:'Sp. Attack',Calm:'Sp. Defense',Gentle:'Sp. Defense',Sassy:'Sp. Defense',Careful:'Sp. Defense',Quirky:0};
+const GEN=['Presence','Smarts','Awareness','Craftiness','Determination','Consumption','Belly','Movement'];
+const BAT=['HP','Speed','Attack','Sp. Attack','Defense','Sp. Defense','Evasion','Accuracy'];
+const BASE_B={HP:5,Speed:2,Attack:2,'Sp. Attack':2,Defense:2,'Sp. Defense':2,Evasion:2,Accuracy:2};
+// backgrounds: type lock, stat bonuses, extras, short rule text
+const BG=[
+ ['The Shopkeeper',null,{},{sup:10},'Start with +10 Supplies.'],
+ ['The Thief','Dark',{},{poke:100},'Once per session, covertly snag an item without a roll. Knows the exact value of items you have heard of. +100 Poké.'],
+ ['The Banker','Ice',{},{},'Freeze berries at will, and effortlessly keep track of your clients’ debts.'],
+ ['The Protector',null,{Presence:1},{},'Occasionally receives Peacekeeping missions. +1 Presence.'],
+ ['The Disciple','Fighting',{},{disciple:1},'2 extra Battle Stat points, and 1 more at every 5th level.'],
+ ['The Navigator',null,{Awareness:1,Consumption:-1},{},'+1 Awareness and -1 Consumption.'],
+ ['The Gang Leader',null,{},{},'Starts with a goon on the payroll. Dark types also start with a hidden base.'],
+ ['The Herbalist','Grass',{Awareness:1},{},'Identifies plants easily. +1 Awareness.'],
+ ['The Cultivator','Bug',{},{},'Clears hardy plant growths with ease. The farm rolls one extra harvest table each season.'],
+ ['The Technologist','Electric',{Smarts:1},{poke:25},'May use Human technology based on Smarts. +25 Poké, +1 Smarts.'],
+ ['The Performer','Fairy',{},{},'Once a session, return 2 points to the team’s Group Determination.'],
+ ['The Fortune Teller','Psychic',{},{},'Once a session, ask the DM for a glimpse of potential futures.'],
+ ['The Cook','Fire',{},{},'Starts with the cooking skill. Meals raise Determination (and Group Determination if all eat) by 1 until a long rest.'],
+ ['The Mountaineer','Rock',{},{},'Climbs vertical surfaces at normal movement speed.'],
+ ['The Scout','Flying',{},{},'Begins missions with information about the starting area. May fly away from combat.'],
+ ['The Demolitionist','Steel',{Craftiness:1},{},'+1 Craftiness. Doubles Craftiness when destroying or dismantling hand-made things.'],
+ ['The Alchemist','Poison',{},{},'Once per long rest, brew a berry into a draught: +1 Stage to a Battle Stat for a battle, or a foul one for a foe.'],
+ ['The Gravekeeper','Ghost',{},{item:1},'+1 to Presence checks with the dead. Starts with one additional item.'],
+ ['The Courier',null,{},{poke:150},'Picks up mail early and knows the settlement’s layout. +150 Poké.'],
+ ['The Deepsearcher','Water',{},{},'+1 to Awareness checks when searching for items underwater.'],
+ ['The Host','Fairy',{},{},'Pokémon recover 1 Determination per hour spent in your company, outside Mystery Dungeons.'],
+ ['The Incubationist',null,{},{},'Eggs in your care hatch in half the time. Respected by the community.'],
+ ['The Miner','Ground',{},{},'Burrows into the ground at will.'],
+];
+const TRAITS=[
+ ['None',{},''],
+ ['Friends Forever',{},'Consult the DM for an NPC companion.'],
+ ['Hoarder',{carry:15},'Carries 15 more Supplies (35 in total).'],
+ ['Crafty',{},'Starts with an HM that suits your type. Consult the DM.'],
+ ['Celebrity',{},'+1 Presence when interacting with members of your community.'],
+ ['Diligent',{poke:150},'+150 Poké.'],
+ ['Shiny',{luck:1},'+1 Luck Point.'],
+ ['Bulky',{b:{HP:2,'Sp. Defense':1,Defense:1,Speed:-1,Evasion:-1}},'Starting size is large.'],
+ ['Egg Rescuer',{},'Starts with an unknown egg.'],
+ ['Small',{b:{Evasion:2,'Sp. Defense':1,Defense:1,Speed:-1,Accuracy:-1}},'Starting size is small.'],
+ ['Exotic',{},'May start as a regional variant.'],
+ ['Rare',{},'May start as Psychic, Ghost, Fairy, Steel, Dragon, Bug, Poison, Flying or Ice.'],
+ ['Dual',{},'May start as a dual-type.'],
+ ['Unusual Parentage',{},'Starts with an egg move. Consult the DM.'],
+];
+const $=id=>document.getElementById(id);
+let S={mode:'pc',sp:bySpecies[25],g:{},b:{},moves:[]};
+
+function rankOf(l){return Math.min(5,Math.floor(l/10)+1)}
+function tierOf(m){const p=MV[m][2];if(MV[m][4]==='Status'||!p)return 0;return p<=50?1:p<=85?2:3}
+function accPen(m){const a=MV[m][3];return a&&a<100?Math.floor((100-a)/10):0}
+function stageOf(p){ // 1 = first stage; babies count as first stage, their evolution also counts as first stage
+  let st=1,cur=bySpecies[p.s];
+  while(cur&&cur.f){const pre=bySpecies[cur.f];if(!pre)break;if(!pre.b)st++;cur=pre}
+  return st}
+function bg(){return BG[$('bg').selectedIndex]}
+function trait(){return TRAITS[$('trait').selectedIndex]}
+function level(){return S.mode==='pc'?1:Math.max(1,Math.min(50,+$('level').value||1))}
+
+function legality(p){
+  const why=[];const t=trait()[0];
+  if(S.mode==='npc') return why;
+  if(p.g) why.push('Legendary and Mythical Pokémon join only through the story');
+  if(stageOf(p)>1) why.push('must start at its first stage');
+  if(p.r&&t!=='Exotic') why.push('regional variants need the Exotic trait');
+  const typeFree=p.r&&t==='Exotic';
+  if(!typeFree&&!$('houseTypes')?.checked){
+    if(p.t.length>1&&t!=='Dual') why.push('dual types need the Dual trait');
+    if(p.t.some(x=>!COMMON.includes(x))&&t!=='Rare') why.push(p.t.filter(x=>!COMMON.includes(x)).join('/')+' needs the Rare trait');
+  }
+  return why}
+
+function renderSpecies(){
+  const q=$('search').value.trim().toLowerCase(), all=$('showAll').checked;
+  const box=$('species');let html='',n=0;
+  for(const p of PK){
+    if(q&&!(p.n.toLowerCase().includes(q)||p.t.join(' ').toLowerCase().includes(q)||String(p.s)===q))continue;
+    const bad=legality(p).length>0;
+    if(bad&&!all)continue;
+    if(++n>400)break;
+    html+=`<div data-i="${p.i}" class="${p===S.sp?'sel':''}" style="${bad?'opacity:.45':''}"><span>#${p.s} ${p.n}</span><span>${p.t.join(' / ')}</span></div>`}
+  box.innerHTML=html||'<p class="note" style="padding:6px 8px">No species match. Try another trait, or tick “Show species not allowed”.</p>'}
+
+function fillSelect(el,items){el.innerHTML=items.map(x=>`<option>${x}</option>`).join('')}
+
+function availableMoves(){
+  const p=S.sp,l=level();
+  if(S.mode==='pc') return p.st.slice();
+  const cap=l*2; const set=[];
+  p.lv.forEach(([lv,m])=>{if(lv<=cap&&!set.includes(m))set.push(m)});
+  return set}
+
+function setSpecies(p,keep){
+  S.sp=p;
+  fillSelect($('ability'),p.a.map(a=>AB[a][0]));
+  if(!keep){const av=availableMoves();S.moves=av.slice(-4)}
+  update()}
+
+function pointsPool(){
+  const l=level(),ms=Math.floor(l/5),b=bg()[3];
+  return {g:2+Math.floor(l/2), b:5+2*ms+(b.disciple?2+ms:0)}}
+function used(o){return Object.values(o).reduce((a,v)=>a+v,0)}
+
+function computed(){
+  const l=level(),ms=Math.floor(l/5),B=bg(),T=trait();
+  const g={},b={};
+  GEN.forEach(k=>g[k]=k==='Consumption'?3:k==='Movement'?10:1);
+  GEN.forEach(k=>{const inv=S.g[k]||0;
+    if(k==='Consumption')g[k]-=inv; else if(k==='Movement')g[k]+=Math.floor(inv/2)*5; else g[k]+=inv});
+  g.Consumption+=Math.floor((S.g.Belly||0)/2);
+  for(const[k,v]of Object.entries(B[2]))g[k]+=v;
+  g.Consumption=Math.max(1,g.Consumption);
+  BAT.forEach(k=>b[k]=BASE_B[k]+(S.b[k]||0)+ms*(k==='HP'?2:1));
+  if(T[1].b)for(const[k,v]of Object.entries(T[1].b))b[k]+=v;
+  // evolutions gained beyond the first stage (NPCs)
+  const evo=Math.max(0,stageOf(S.sp)-1);
+  const nat=NATURES[$('nature').value]||$('neutralStat').value;
+  b.HP+=5*evo; if(nat)b[nat]+=3*evo;
+  BAT.forEach(k=>b[k]=Math.max(k==='HP'?1:0,b[k]));
+  return {g,b,evo,rank:rankOf(l),l,
+    sup:10+(B[3].sup||0),carry:20+(T[1].carry||0),poke:200+(B[3].poke||0)+(T[1].poke||0),luck:T[1].luck||0}}
+
+function statTable(el,keys,obj,vals,cap){
+  el.innerHTML=keys.map(k=>`<tr><td>${k}</td><td class="v">${vals[k]}${k==='Movement'?'m':''}</td><td class="b"><button class="ghost" data-k="${k}" data-d="-1">−</button> <button class="ghost" data-k="${k}" data-d="1">+</button></td></tr>`).join('');
+  el.onclick=e=>{const k=e.target.dataset.k;if(!k)return;const d=+e.target.dataset.d;
+    const cur=obj[k]||0;if(d<0&&cur<=0)return;if(d>0&&used(obj)>=cap)return;
+    if(d>0&&k==='Consumption'&&computed().g.Consumption<=1)return;
+    obj[k]=cur+d;update()}}
+
+function moveLine(m,rank,c){
+  const [n,t,pw,acc,cl,desc]=MV[m];const tier=tierOf(m),pen=accPen(m);
+  let fx=cl==='Status'?'Status':`${cl}, Tier ${tier}`;
+  if(tier){const st=cl==='Physical'?c.b.Attack:c.b['Sp. Attack'];fx+=`, ${tier*rank+st} − ${cl==='Physical'?'Def':'Sp. Def'}`}
+  return {n,t,fx,acc:acc?`${acc}%${pen?` (−${pen} to hit)`:''}`:'never misses',desc}}
+
+function renderMoves(c){
+  const av=availableMoves();S.moves=S.moves.filter(m=>av.includes(m));
+  $('moveCount').textContent=`${S.moves.length}/4 · ${S.mode==='pc'?'starting moves':'level-up moves to game level '+level()*2}`;
+  $('moves').innerHTML=av.length?av.map(m=>{const x=moveLine(m,c.rank,c);
+    return `<div class="move ${S.moves.includes(m)?'on':''}" data-m="${m}"><div class="h"><b>${x.n}</b><span class="chip">${x.t}</span></div><div class="d">${x.fx} · ${x.acc}</div><div class="d">${x.desc}</div></div>`}).join('')
+    :'<p class="note">This species learns no moves at this level.</p>';
+  const q=$('poolSearch').value.toLowerCase();
+  const later=S.sp.p.filter(m=>!av.includes(m)&&MV[m]&&(!q||MV[m][0].toLowerCase().includes(q)||MV[m][1].toLowerCase().includes(q)));
+  $('pool').innerHTML=`<p class="note">${later.length} moves this Pokémon can learn later, from its full move pool.</p>`+later.map(m=>{const x=moveLine(m,c.rank,c);return `<div class="move"><div class="h"><b>${x.n}</b><span class="chip">${x.t}</span></div><div class="d">${x.fx} · ${x.acc}</div></div>`}).join('')}
+
+function sheet(c){
+  const p=S.sp,B=bg(),T=trait(),ab=p.a[$('ability').selectedIndex];
+  const nat=$('nature').value;
+  const L=[];
+  L.push($('name').value||'<NAME>');
+  L.push(`Species: ${p.n}`,`Type: ${p.t.join('/')}`,`Nature: ${nat}${NATURES[nat]?'':' (raises '+$('neutralStat').value+' on evolving)'}`);
+  if(ab!=null)L.push(`Ability: ${AB[ab][0]} - ${AB[ab][1]}`);
+  L.push(`Level: ${c.l} (Rank ${c.rank})`,`Growth: 0/${c.l}`,`Background: ${B[0]}`);
+  if(T[0]!=='None')L.push(`Trait: ${T[0]}`);
+  L.push(`Supplies: ${c.sup} (carries up to ${c.carry})`,`Poké: ${c.poke}`,`Luck Points: ${c.luck}/${c.luck}`,'');
+  L.push('GENERAL');GEN.forEach(k=>L.push(`${k}: ${c.g[k]}${k==='Movement'?'m.':''}${k==='Belly'?'/'+c.g[k]:''}`));
+  L.push('','MOVES');
+  S.moves.forEach(m=>{const x=moveLine(m,c.rank,c);L.push(`${x.n} (${x.t}, ${x.fx.replace(/, \d+ − .*$/,'')}, ${x.acc}) - ${x.desc}`)});
+  L.push('','BATTLE');BAT.forEach(k=>L.push(`${k}: ${k==='HP'?c.b[k]+'/'+c.b[k]:c.b[k]}`));
+  L.push('','Background: '+B[4]);if(T[2])L.push('Trait: '+T[2]);
+  L.push('','Equipment:');
+  return L.join('\n')}
+
+function update(){
+  const pc=S.mode==='pc';
+  $('level').disabled=pc;if(pc)$('level').value=1;
+  const nat=$('nature').value;$('neutralWrap').style.display=NATURES[nat]?'none':'block';
+  // background legality
+  const B=bg(),T=trait();
+  $('bgNote').textContent=B[4]+(B[1]?` (${B[1]} types)`:'');
+  $('traitNote').textContent=T[2];
+  const pool=pointsPool();
+  // trim overspent points
+  while(used(S.g)>pool.g){const k=Object.keys(S.g).find(k=>S.g[k]>0);S.g[k]--}
+  while(used(S.b)>pool.b){const k=Object.keys(S.b).find(k=>S.b[k]>0);S.b[k]--}
+  const c=computed();
+  $('gPts').innerHTML=`Points to spend: <b>${pool.g-used(S.g)}</b> of ${pool.g}`;
+  $('bPts').innerHTML=`Points to spend: <b>${pool.b-used(S.b)}</b> of ${pool.b}`+(c.l>=5?` · includes +1 to every stat (+2 HP) per 5 levels`:'')+(c.evo?` · ${c.evo} evolution${c.evo>1?'s':''}: +${5*c.evo} HP, +${3*c.evo} ${NATURES[nat]||$('neutralStat').value}`:'');
+  statTable($('gTable'),GEN,S.g,c.g,pool.g);
+  statTable($('bTable'),BAT,S.b,c.b,pool.b);
+  const ab=S.sp.a[$('ability').selectedIndex];$('abilityNote').textContent=ab!=null?AB[ab][1]:'';
+  renderMoves(c);
+  const probs=[];
+  legality(S.sp).forEach(w=>probs.push(`${S.sp.n}: ${w}.`));
+  if(B[1]&&!S.sp.t.includes(B[1]))probs.push(`${B[0]} is for ${B[1]} types.`);
+  if(!pc){const st=stageOf(S.sp),r=c.rank;if(st===2&&r<2||st>=3&&r<3)probs.push(`A ${st===2?'second':'third'}-stage Pokémon needs Rank ${st} (level ${st===2?10:20}).`)}
+  if(!S.moves.length&&availableMoves().length)probs.push('Pick at least one move.');
+  $('problems').innerHTML=probs.map(x=>`<p class="warn">${x}</p>`).join('');
+  $('speciesNote').textContent=`${S.sp.n}: stage ${stageOf(S.sp)}${S.sp.b?' (baby)':''}${S.sp.g?', story-only':''}.`;
+  $('sheet').textContent=sheet(c);
+  renderSpecies()}
+
+function spreadGeneral(){
+  const pool=pointsPool().g,ks=['Presence','Smarts','Awareness','Craftiness','Determination'];let i=Math.floor(Math.random()*5);
+  while(used(S.g)<pool){const k=ks[i++%5];S.g[k]=(S.g[k]||0)+1}}
+function spreadBattle(){spreadGeneral();
+  const pool=pointsPool().b,bs=S.sp.bs; // hp atk def spa spd spe
+  const w={HP:bs[0],Attack:bs[1],Defense:bs[2],'Sp. Attack':bs[3],'Sp. Defense':bs[4],Speed:bs[5],Evasion:bs[5]*.6,Accuracy:(bs[1]+bs[3])*.3};
+  S.b={};const tot=Object.values(w).reduce((a,v)=>a+v,0);
+  const raw=BAT.map(k=>[k,w[k]/tot*pool]);raw.forEach(([k,v])=>S.b[k]=Math.floor(v));
+  raw.sort((a,b)=>(b[1]%1)-(a[1]%1));let left=pool-used(S.b),i=0;while(left-->0)S.b[raw[i++%raw.length][0]]++;
+  update()}
+
+function randomize(){
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  if(S.mode==='npc')$('level').value=1+Math.floor(Math.random()*35);
+  $('nature').selectedIndex=Math.floor(Math.random()*25);
+  $('trait').selectedIndex=Math.floor(Math.random()*TRAITS.length);
+  let cands=PK.filter(p=>!legality(p).length);
+  if(S.mode==='npc'){const r=rankOf(level());cands=cands.filter(p=>!p.g&&stageOf(p)<=Math.max(1,r))}
+  const p=pick(cands);
+  const okBg=BG.map((b,i)=>[b,i]).filter(([b])=>!b[1]||p.t.includes(b[1]));
+  $('bg').selectedIndex=pick(okBg)[1];
+  S.g={};const gp=pointsPool().g;for(let i=0;i<gp;i++){const k=pick(['Presence','Smarts','Awareness','Craftiness','Determination','Presence','Smarts','Awareness','Craftiness']);S.g[k]=(S.g[k]||0)+1}
+  setSpecies(p);$('ability').selectedIndex=Math.floor(Math.random()*p.a.length);
+  const av=availableMoves();S.moves=av.slice().sort(()=>Math.random()-.5).slice(0,4);
+  spreadBattle()}
+
+// roster
+const KEY='pmd-deliverance-roster';
+function loadRoster(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function saveRoster(r){try{localStorage.setItem(KEY,JSON.stringify(r));return true}catch(e){return false}}
+function renderRoster(){const r=loadRoster();
+  $('roster').innerHTML=r.length?r.map((x,i)=>`<div><span>${x.name||'Unnamed'} · ${x.sp}</span><span><button class="ghost" data-a="load" data-i="${i}">Load</button> <button class="ghost" data-a="del" data-i="${i}">Remove</button></span></div>`).join(''):'<p class="note">Saved characters appear here, in this browser only.</p>'}
+function snapshot(){return {name:$('name').value,mode:S.mode,level:$('level').value,nature:$('nature').selectedIndex,neutral:$('neutralStat').selectedIndex,trait:$('trait').selectedIndex,bg:$('bg').selectedIndex,i:S.sp.i,ability:$('ability').selectedIndex,g:S.g,b:S.b,moves:S.moves,sp:S.sp.n}}
+function restore(x){setMode(x.mode,true);$('name').value=x.name;$('level').value=x.level;$('nature').selectedIndex=x.nature;$('neutralStat').selectedIndex=x.neutral;$('trait').selectedIndex=x.trait;$('bg').selectedIndex=x.bg;
+  setSpecies(PK.find(p=>p.i===x.i),true);$('ability').selectedIndex=x.ability;S.g=x.g;S.b=x.b;S.moves=x.moves;update()}
+
+function setMode(m,quiet){S.mode=m;document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  if(!quiet){S.moves=availableMoves().slice(-4);update()}}
+
+// init
+fillSelect($('nature'),Object.keys(NATURES));
+fillSelect($('neutralStat'),BAT.filter(k=>k!=='HP'));
+fillSelect($('trait'),TRAITS.map(t=>t[0]));
+fillSelect($('bg'),BG.map(b=>b[0]+(b[1]?` (${b[1]} types)`:'')));
+document.querySelector('#search').insertAdjacentHTML('afterend','<label style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--ink)"><input type="checkbox" id="houseTypes"> House rule: ignore the Rare and Dual type limits</label>');
+$('species').onclick=e=>{const d=e.target.closest('[data-i]');if(d)setSpecies(PK.find(p=>p.i===+d.dataset.i))};
+$('moves').onclick=e=>{const d=e.target.closest('[data-m]');if(!d)return;const m=+d.dataset.m;
+  if(S.moves.includes(m))S.moves=S.moves.filter(x=>x!==m);else if(S.moves.length<4)S.moves.push(m);update()};
+['search','showAll','houseTypes'].forEach(id=>$(id).addEventListener('input',renderSpecies));
+['showAll','houseTypes'].forEach(id=>$(id).addEventListener('change',update));
+['name','level','nature','neutralStat','trait','bg','ability'].forEach(id=>$(id).addEventListener('input',()=>{if(id==='level')S.moves=S.moves;update()}));
+$('poolSearch').addEventListener('input',()=>renderMoves(computed()));
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$('rand').onclick=randomize;$('autoB').onclick=spreadBattle;$('resetPts').onclick=()=>{S.g={};S.b={};update()};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('sheet').textContent);$('copyNote').textContent='Copied.'}catch(e){const r=document.createRange();r.selectNodeContents($('sheet'));getSelection().removeAllRanges();getSelection().addRange(r);$('copyNote').textContent='Selected. Press Ctrl+C to copy.'}};
+$('dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('sheet').textContent],{type:'text/plain'}));a.download=($('name').value||S.sp.n).replace(/[^\w-]+/g,'_')+'.txt';a.click()};
+$('save').onclick=()=>{const r=loadRoster();r.push(snapshot());$('copyNote').textContent=saveRoster(r)?'Saved to the roster.':'This browser won’t let the page save. Use Copy or Download instead.';renderRoster()};
+$('roster').onclick=e=>{const a=e.target.dataset.a,i=+e.target.dataset.i;if(!a)return;const r=loadRoster();if(a==='load')restore(r[i]);else{r.splice(i,1);saveRoster(r);renderRoster()}};
+setSpecies(bySpecies[25]);renderRoster();
+</script>
+</body>
+</html>
