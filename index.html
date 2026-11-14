@@ -382,6 +382,7 @@ $('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('sheet').t
 $('dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('sheet').textContent],{type:'text/plain'}));a.download=($('name').value||S.sp.n).replace(/[^\w-]+/g,'_')+'.txt';a.click()};
 $('save').onclick=()=>{const r=loadRoster();r.push(snapshot());$('copyNote').textContent=saveRoster(r)?'Saved to the roster.':'This browser won’t let the page save. Use Copy or Download instead.';renderRoster()};
 $('roster').onclick=e=>{const a=e.target.dataset.a,i=+e.target.dataset.i;if(!a)return;const r=loadRoster();if(a==='load')restore(r[i]);else{r.splice(i,1);saveRoster(r);renderRoster()}};
+if(window.self!==window.top)$('dl').style.display='none';
 setSpecies(bySpecies[25]);renderRoster();
 </script>
 </body>
