@@ -4,56 +4,72 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deliverance Character Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3ecdc; --panel:#fbf7ee; --ink:#2b2a24; --muted:#6d6656; --line:#d9cfb8;
-  --accent:#3f6b4f; --accent2:#7a5a2f; --warn:#9b3b2a; --chip:#ece3cf;
+  --ink:#2c3b2a; --muted:#5f7158; --panel:#fffbef; --line:#cfe0bf;
+  --leaf:#4f9a45; --leafD:#2f6b34; --bark:#8a5a32; --warn:#c0462e; --chip:#eef4e2; --sky1:#bfe6f3; --sky2:#e8f6df;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Georgia,"Iowan Old Style","Palatino Linotype",serif}
-header{padding:18px 24px 10px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between}
-h1{margin:0;font-size:24px;letter-spacing:.3px}
-h1 small{display:block;font-size:13px;color:var(--muted);font-weight:normal;letter-spacing:0}
-h2{font-size:16px;margin:0 0 10px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px}
-main{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,1fr) minmax(300px,.9fr);gap:16px;padding:16px 24px 40px}
+body{margin:0;color:var(--ink);font:15px/1.5 Nunito,"Segoe UI",system-ui,sans-serif;min-height:100vh;
+  background-color:var(--sky2);background-repeat:repeat-x,repeat-x,no-repeat;background-attachment:fixed;
+  background-position:left bottom,left bottom,0 0}
+header{margin:14px 24px 0;padding:12px 18px;background:rgba(255,251,239,.92);border:3px solid var(--leafD);border-radius:14px;box-shadow:0 5px 0 var(--leafD);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{margin:0;font:700 26px/1.1 "Pixelify Sans",monospace;color:var(--leafD);letter-spacing:.5px}
+h1 small{display:block;font:13px Nunito,sans-serif;color:var(--muted);margin-top:4px}
+h2{font:700 17px "Pixelify Sans",monospace;margin:0 0 10px;color:var(--leafD);letter-spacing:.5px}
+h2::before{content:"";display:inline-block;width:12px;height:12px;margin-right:7px;vertical-align:-1px;background:var(--leaf);border-radius:12px 0 12px 0}
+main{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,1fr) minmax(300px,.9fr);gap:16px;padding:16px 24px 180px}
 @media (max-width:1100px){main{grid-template-columns:1fr 1fr}}
 @media (max-width:720px){main{grid-template-columns:1fr}}
-section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:16px}
-label{display:block;font-size:13px;color:var(--muted);margin:8px 0 3px}
+section{background:rgba(255,251,239,.96);border:3px solid var(--leafD);border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 5px 0 var(--leafD)}
+label{display:block;font-size:13px;color:var(--muted);margin:8px 0 3px;font-weight:700}
 input,select,button,textarea{font:inherit;color:inherit}
-input[type=text],input[type=number],select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:#fff}
-button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:5px;padding:6px 12px;cursor:pointer}
-button.ghost{background:transparent;color:var(--accent)}
+input[type=text],input[type=number],select{width:100%;padding:6px 9px;border:2px solid var(--line);border-radius:9px;background:#fff}
+input:focus,select:focus{outline:none;border-color:var(--leaf)}
+input[type=checkbox]{accent-color:var(--leaf)}
+button{position:relative;white-space:nowrap;border:2px solid var(--leafD);background:var(--leaf);color:#fff;font-weight:700;border-radius:16px 4px 16px 4px;padding:6px 14px;cursor:pointer;box-shadow:0 3px 0 var(--leafD);transition:transform .08s}
+button::after{content:"";position:absolute;top:-6px;right:6px;width:11px;height:7px;background:#7cc46a;border:2px solid var(--leafD);border-radius:9px 0 9px 0;transform:rotate(-18deg)}
+button:hover{transform:translateY(-1px)}button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--leafD)}
+button.ghost{background:#fff;color:var(--leafD)}
+table.stats button::after{display:none}
+table.stats button{border-radius:9px 2px 9px 2px;box-shadow:0 2px 0 var(--leafD)}
 button:disabled{opacity:.4;cursor:default}
-.seg{display:inline-flex;border:1px solid var(--accent);border-radius:6px;overflow:hidden}
-.seg button{white-space:nowrap;border:0;border-radius:0;background:transparent;color:var(--accent)}
-.seg button.on{background:var(--accent);color:#fff}
+.seg{display:inline-flex;gap:6px}
+.seg button{white-space:nowrap;background:#fff;color:var(--leafD)}
+.seg button.on{background:var(--leaf);color:#fff}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .row>*{flex:1}
 .note{font-size:13px;color:var(--muted);margin:6px 0 0}
-.warn{color:var(--warn);font-size:13px;margin:6px 0 0}
-.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.chip{background:var(--chip);border-radius:10px;padding:1px 8px;font-size:12px}
-.list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:5px;background:#fff}
-.list div{padding:4px 8px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #f0ead9}
-.list div:hover{background:#f5efe0}
-.list div.sel{background:#e3ecdf}
-.list div span:last-child{color:var(--muted);font-size:12px;white-space:nowrap}
+.warn{color:var(--warn);font-size:13px;margin:6px 0 0;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip,.ty{border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;white-space:nowrap}
+.chip{background:var(--chip)}
+.list{max-height:280px;overflow:auto;border:2px solid var(--line);border-radius:10px;background:#fff}
+.list div{padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #eef3e4}
+.list div:hover{background:#f2f9ea}
+.list div.sel{background:#dff0d3}
+.list .nm{flex:1}
+.badge{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font:700 13px "Pixelify Sans",monospace;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);border:2px solid rgba(0,0,0,.15)}
+.big{width:44px;height:44px;flex-basis:44px;font-size:20px}
+.pick{display:flex;gap:10px;align-items:center;margin-top:10px}
 table.stats{width:100%;border-collapse:collapse}
-table.stats td{padding:3px 2px;border-bottom:1px solid #efe7d3}
-table.stats td.v{text-align:right;font-weight:bold;width:52px}
-table.stats td.b{width:76px;text-align:right;white-space:nowrap}
-table.stats button{padding:0 8px;line-height:20px}
+table.stats td{padding:3px 2px;border-bottom:1px dashed #dfe9d2}
+table.stats td.v{text-align:right;font-weight:700;width:52px}
+table.stats td.b{width:84px;text-align:right;white-space:nowrap}
+table.stats button{padding:0 9px;line-height:20px}
 .pts{font-size:13px;margin:4px 0 6px}
-.pts b{color:var(--accent)}
-.move{border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:6px 0;background:#fff}
-.move.on{border-color:var(--accent);background:#eef4ea}
+.pts b{color:var(--leafD);font-size:15px}
+.move{border:2px solid var(--line);border-radius:10px;padding:6px 9px;margin:6px 0;background:#fff;border-left-width:6px}
+.move.on{background:#eef8e6;border-color:var(--leaf)}
 .move .h{display:flex;justify-content:space-between;gap:6px;cursor:pointer}
 .move .d{font-size:13px;color:var(--muted)}
-pre{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px;font:13px/1.45 ui-monospace,Consolas,monospace;max-height:540px;overflow:auto}
-details summary{cursor:pointer;color:var(--accent);margin-top:8px}
-.roster div{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #efe7d3}
+pre{white-space:pre-wrap;background:#fff;border:2px solid var(--line);border-radius:10px;padding:10px;font:13px/1.45 ui-monospace,Consolas,monospace;max-height:540px;overflow:auto}
+details summary{cursor:pointer;color:var(--leafD);font-weight:700;margin-top:8px}
+.roster div{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed #dfe9d2}
 .roster button{padding:1px 8px;font-size:12px}
+.roster button::after{display:none}
 </style>
 </head>
 <body>
@@ -84,6 +100,7 @@ details summary{cursor:pointer;color:var(--accent);margin-top:8px}
     <input type="text" id="search" placeholder="Search by name, type or number">
     <label style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--ink)"><input type="checkbox" id="showAll"> Show species not allowed right now</label>
     <div class="list" id="species" style="margin-top:6px"></div>
+    <div class="pick" id="pick"></div>
     <p class="note" id="speciesNote"></p>
     <label>Ability</label><select id="ability"></select>
     <p class="note" id="abilityNote"></p>
@@ -178,6 +195,25 @@ const TRAITS=[
  ['Unusual Parentage',{},'Starts with an egg move. Consult the DM.'],
 ];
 const $=id=>document.getElementById(id);
+const TC={Normal:'#A8A77A',Fire:'#EE8130',Water:'#6390F0',Electric:'#F7D02C',Grass:'#7AC74C',Ice:'#96D9D6',Fighting:'#C22E28',Poison:'#A33EA1',Ground:'#E2BF65',Flying:'#A98FF3',Psychic:'#F95587',Bug:'#A6B91A',Rock:'#B6A136',Ghost:'#735797',Dragon:'#6F35FC',Dark:'#705746',Steel:'#B7B7CE',Fairy:'#D685AD'};
+function light(h){const n=parseInt(h.slice(1),16);return ((n>>16)*299+((n>>8&255)*587)+((n&255)*114))/1000>170}
+function tyChip(t){const c=TC[t]||'#999';return `<span class="ty" style="background:${c};color:${light(c)?'#2c3b2a':'#fff'}">${t}</span>`}
+function badge(p,big){const a=TC[p.t[0]]||'#999',b=TC[p.t[1]||p.t[0]]||a;
+  return `<span class="badge${big?' big':''}" style="background:linear-gradient(135deg,${a} 50%,${b} 50%)">${p.n.replace(/^(Alolan|Galarian|Hisuian|Paldean) /,'')[0]}</span>`}
+function forest(){
+  let seed=7;const r=()=>(seed=(seed*9301+49297)%233280)/233280;
+  const pine=(x,base,h,c,t)=>{let o='';const n=7,st=h/n;for(let i=0;i<n;i++){const w=Math.round((i+1)*st*.95);o+=`<rect x="${Math.round(x-w/2)}" y="${Math.round(base-h+i*st)}" width="${w}" height="${Math.ceil(st)}" fill="${c}"/>`}
+    return o+`<rect x="${x-3}" y="${base}" width="6" height="10" fill="${t}"/>`};
+  const layer=(W,H,base,cnt,hmin,hmax,c,t,ground,extra)=>{let o=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges">`;
+    for(let i=0;i<cnt;i++){const x=Math.round(i*W/cnt+r()*20),h=hmin+r()*(hmax-hmin);o+=pine(x,base,h,c,t);if(x<40)o+=pine(x+W,base,h,c,t)}
+    if(ground)o+=`<rect x="0" y="${base+8}" width="${W}" height="${H-base}" fill="${ground}"/>`+extra;
+    return 'url("data:image/svg+xml,'+encodeURIComponent(o+'</svg>')+'")'};
+  let tufts='';for(let i=0;i<24;i++){const x=Math.round(r()*560);tufts+=`<rect x="${x}" y="196" width="4" height="6" fill="#3d7f37"/><rect x="${x+5}" y="194" width="4" height="8" fill="#3d7f37"/>`;if(i%5===0)tufts+=`<rect x="${x+12}" y="198" width="6" height="6" fill="#ffd166"/><rect x="${x+14}" y="200" width="2" height="2" fill="#e76f51"/>`}
+  const far=layer(400,170,160,9,70,120,'#8fc79a','#6b8f6b',null,'');
+  const near=layer(560,230,188,8,90,150,'#3f8a4c','#7a5230','#5f9e45',tufts);
+  document.body.style.backgroundImage=`${near},${far},linear-gradient(180deg,var(--sky1),var(--sky2) 70%)`}
+forest();
+
 let S={mode:'pc',sp:bySpecies[25],g:{},b:{},moves:[]};
 
 function rankOf(l){return Math.min(5,Math.floor(l/10)+1)}
@@ -212,7 +248,7 @@ function renderSpecies(){
     const bad=legality(p).length>0;
     if(bad&&!all)continue;
     if(++n>400)break;
-    html+=`<div data-i="${p.i}" class="${p===S.sp?'sel':''}" style="${bad?'opacity:.45':''}"><span>#${p.s} ${p.n}</span><span>${p.t.join(' / ')}</span></div>`}
+    html+=`<div data-i="${p.i}" class="${p===S.sp?'sel':''}" style="${bad?'opacity:.45':''}">${badge(p)}<span class="nm">#${p.s} ${p.n}</span><span class="chips">${p.t.map(tyChip).join('')}</span></div>`}
   box.innerHTML=html||'<p class="note" style="padding:6px 8px">No species match. Try another trait, or tick “Show species not allowed”.</p>'}
 
 function fillSelect(el,items){el.innerHTML=items.map(x=>`<option>${x}</option>`).join('')}
@@ -271,11 +307,11 @@ function renderMoves(c){
   const av=availableMoves();S.moves=S.moves.filter(m=>av.includes(m));
   $('moveCount').textContent=`${S.moves.length}/4 · ${S.mode==='pc'?'starting moves':'level-up moves to game level '+level()*2}`;
   $('moves').innerHTML=av.length?av.map(m=>{const x=moveLine(m,c.rank,c);
-    return `<div class="move ${S.moves.includes(m)?'on':''}" data-m="${m}"><div class="h"><b>${x.n}</b><span class="chip">${x.t}</span></div><div class="d">${x.fx} · ${x.acc}</div><div class="d">${x.desc}</div></div>`}).join('')
+    return `<div class="move ${S.moves.includes(m)?'on':''}" data-m="${m}" style="border-left-color:${TC[x.t]||'#ccc'}"><div class="h"><b>${x.n}</b>${tyChip(x.t)}</div><div class="d">${x.fx} · ${x.acc}</div><div class="d">${x.desc}</div></div>`}).join('')
     :'<p class="note">This species learns no moves at this level.</p>';
   const q=$('poolSearch').value.toLowerCase();
   const later=S.sp.p.filter(m=>!av.includes(m)&&MV[m]&&(!q||MV[m][0].toLowerCase().includes(q)||MV[m][1].toLowerCase().includes(q)));
-  $('pool').innerHTML=`<p class="note">${later.length} moves this Pokémon can learn later, from its full move pool.</p>`+later.map(m=>{const x=moveLine(m,c.rank,c);return `<div class="move"><div class="h"><b>${x.n}</b><span class="chip">${x.t}</span></div><div class="d">${x.fx} · ${x.acc}</div></div>`}).join('')}
+  $('pool').innerHTML=`<p class="note">${later.length} moves this Pokémon can learn later, from its full move pool.</p>`+later.map(m=>{const x=moveLine(m,c.rank,c);return `<div class="move" style="border-left-color:${TC[x.t]||'#ccc'}"><div class="h"><b>${x.n}</b>${tyChip(x.t)}</div><div class="d">${x.fx} · ${x.acc}</div></div>`}).join('')}
 
 function sheet(c){
   const p=S.sp,B=bg(),T=trait(),ab=p.a[$('ability').selectedIndex];
@@ -320,6 +356,7 @@ function update(){
   if(!pc){const st=stageOf(S.sp),r=c.rank;if(st===2&&r<2||st>=3&&r<3)probs.push(`A ${st===2?'second':'third'}-stage Pokémon needs Rank ${st} (level ${st===2?10:20}).`)}
   if(!S.moves.length&&availableMoves().length)probs.push('Pick at least one move.');
   $('problems').innerHTML=probs.map(x=>`<p class="warn">${x}</p>`).join('');
+  $('pick').innerHTML=`${badge(S.sp,1)}<div><b>${S.sp.n}</b><div class="chips">${S.sp.t.map(tyChip).join('')}</div></div>`;
   $('speciesNote').textContent=`${S.sp.n}: stage ${stageOf(S.sp)}${S.sp.b?' (baby)':''}${S.sp.g?', story-only':''}.`;
   $('sheet').textContent=sheet(c);
   renderSpecies()}
