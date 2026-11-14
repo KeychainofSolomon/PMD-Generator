@@ -260,6 +260,7 @@ function legality(p){
   const why=[];const t=trait()[0];
   if(S.mode==='npc') return why;
   if(p.g) why.push('Legendary and Mythical Pokémon join only through the story');
+  const B=bg(); if(B[1]&&!p.t.includes(B[1])) why.push(`${B[0]} is for ${B[1]} types`);
   if(stageOf(p)>1) why.push('must start at its first stage');
   if(p.r&&t!=='Exotic') why.push('regional variants need the Exotic trait');
   const typeFree=p.r&&t==='Exotic';
@@ -381,7 +382,7 @@ function update(){
   renderMoves(c);
   const probs=[];
   legality(S.sp).forEach(w=>probs.push(`${S.sp.n}: ${w}.`));
-  if(B[1]&&!S.sp.t.includes(B[1]))probs.push(`${B[0]} is for ${B[1]} types.`);
+  if(!pc&&B[1]&&!S.sp.t.includes(B[1]))probs.push(`${B[0]} is for ${B[1]} types.`);
   if(!pc){const st=stageOf(S.sp),r=c.rank;if(st===2&&r<2||st>=3&&r<3)probs.push(`A ${st===2?'second':'third'}-stage Pokémon needs Rank ${st} (level ${st===2?10:20}).`)}
   if(!S.moves.length&&availableMoves().length)probs.push('Pick at least one move.');
   $('problems').innerHTML=probs.map(x=>`<p class="warn">${x}</p>`).join('');
@@ -406,6 +407,7 @@ function randomize(){
   if(S.mode==='npc')$('level').value=1+Math.floor(Math.random()*35);
   $('nature').selectedIndex=Math.floor(Math.random()*25);
   $('trait').selectedIndex=Math.floor(Math.random()*TRAITS.length);
+  $('bg').selectedIndex=BG.findIndex(b=>!b[1]); // judge species without a type-locked background first
   let cands=PK.filter(p=>!legality(p).length);
   if(S.mode==='npc'){const r=rankOf(level());cands=cands.filter(p=>!p.g&&stageOf(p)<=Math.max(1,r))}
   const p=pick(cands);
